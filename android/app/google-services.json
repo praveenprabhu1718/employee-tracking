@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "505905815571",
+    "firebase_url": "https://employee-tracking-71195.firebaseio.com",
+    "project_id": "employee-tracking-71195",
+    "storage_bucket": "employee-tracking-71195.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:505905815571:android:71f3470214049d93791fe6",
+        "android_client_info": {
+          "package_name": "in.co.praveen.employeetracking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "505905815571-jkh9r0spnk5sirk2ugmfn6k20v96ivsu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0I1wZVyhtLiDCUcIchJyYFt0I4QnJRR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "505905815571-jkh9r0spnk5sirk2ugmfn6k20v96ivsu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
