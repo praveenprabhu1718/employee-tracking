@@ -2,7 +2,12 @@ import 'package:employeetracking/navigation_bloc/navigation_bloc.dart';
 import 'package:employeetracking/sidebar/sidebar_layout.dart';
 import 'package:flutter/material.dart';
 
-class AccountScreen extends StatelessWidget with NavigationStates {
+class CallHistory extends StatefulWidget with NavigationStates {
+  @override
+  _CallHistoryState createState() => _CallHistoryState();
+}
+
+class _CallHistoryState extends State<CallHistory> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -10,11 +15,8 @@ class AccountScreen extends StatelessWidget with NavigationStates {
         Navigator.pushReplacementNamed(context, SideBarLayout.id);
         return true;
       },
-      child: Center(
-        child: Text(
-          "My Accounts",
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 28),
-        ),
+      child: Container(
+        child: Center(child: Text('Call History')),
       ),
     );
   }

@@ -1,11 +1,18 @@
+
+
 import 'package:bloc/bloc.dart';
+import 'package:employeetracking/screens/CallHistory.dart';
+import 'package:employeetracking/screens/ChatListScreen.dart';
+import 'package:employeetracking/screens/Events.dart';
 import 'package:employeetracking/screens/account_screen.dart';
 import 'package:employeetracking/screens/map_screen.dart';
 
 enum NavigationEvents {
   HomePageClickedEvent,
   MyAccountClickedEvent,
-  MyOrdersClickedEvent,
+  ChatsClickedEvent,
+  CallHistoryClickedEvent,
+  EventsClickedEvent
 }
 
 abstract class NavigationStates {}
@@ -22,6 +29,15 @@ class NavigationBloc extends Bloc<NavigationEvents, NavigationStates> {
         break;
       case NavigationEvents.MyAccountClickedEvent:
         yield AccountScreen();
+        break;
+      case NavigationEvents.CallHistoryClickedEvent:
+        yield CallHistory();
+        break;
+      case NavigationEvents.ChatsClickedEvent:
+        yield ChatListScreen();
+        break;
+      case NavigationEvents.EventsClickedEvent:
+        yield Events();
         break;
       default:
         break;

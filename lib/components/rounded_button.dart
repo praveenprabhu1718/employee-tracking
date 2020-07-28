@@ -1,3 +1,4 @@
+import 'package:employeetracking/utils/Universalvariables.dart';
 import 'package:flutter/material.dart';
 
 class RoundedButton extends StatelessWidget {
@@ -14,7 +15,7 @@ class RoundedButton extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 100.0),
       child: Material(
         elevation: 5.0,
-        color: buttonColor,
+        color: UniversalVariables.blackColor,
         borderRadius: BorderRadius.circular(30.0),
         child: MaterialButton(
           onPressed: onPressed,

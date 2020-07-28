@@ -1,37 +1,52 @@
+import 'package:employeetracking/constants.dart';
+import 'package:employeetracking/provider/ImageUploadProvider.dart';
+import 'package:employeetracking/resources/FirebaseRepository.dart';
+import 'package:employeetracking/screens/SearchScreen.dart';
 import 'package:employeetracking/screens/login_screen.dart';
 import 'package:employeetracking/screens/map_screen.dart';
 import 'package:employeetracking/sidebar/sidebar_layout.dart';
+import 'package:employeetracking/utils/Universalvariables.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
-void main()  {
-    runApp(new MyApp());
+main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  @override
-  _MyAppState createState() => _MyAppState();
-}
+FirebaseRepository _repository = FirebaseRepository();
 
-class _MyAppState extends State<MyApp> {
-
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: Color(0xff465F40),
-        accentColor: Color(0xff639a67),
+    return ChangeNotifierProvider(
+      create: (context) => ImageUploadProvider(),
+      child: MaterialApp(
+        theme: ThemeData(
+          brightness: Brightness.light,
+          primaryColor: UniversalVariables.blackColor,
+          accentColor: UniversalVariables.separatorColor,
+        ),
+        debugShowCheckedModeBanner: false,
+        routes: {
+          SearchScreen.id: (context) => SearchScreen(),
+          SideBarLayout.id: (context) => SideBarLayout(),
+          LoginScreen.id: (context) => LoginScreen(),
+          MapScreen.id: (context) => MapScreen()
+        },
+        home: FutureBuilder(
+            future: _repository.getCurrentUser(),
+            builder:
+                (BuildContext context, AsyncSnapshot<FirebaseUser> snapshot) {
+              if (snapshot.hasData) {
+                return SideBarLayout();
+              } else {
+                return LoginScreen();
+              }
+            }),
       ),
-      debugShowCheckedModeBanner: false,
-      initialRoute: LoginScreen.id,
-      routes: {
-        SideBarLayout.id : (context) => SideBarLayout(),
-        LoginScreen.id : (context) => LoginScreen(),
-        MapScreen.id : (context) => MapScreen()
-      },
     );
   }
 }
-

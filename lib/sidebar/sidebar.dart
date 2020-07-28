@@ -1,15 +1,16 @@
 import 'dart:async';
 
 import 'package:employeetracking/navigation_bloc/navigation_bloc.dart';
+import 'package:employeetracking/resources/FirebaseRepository.dart';
 import 'package:employeetracking/screens/login_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:employeetracking/utils/Universalvariables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../sidebar/menu_item.dart';
 
-FirebaseUser loggedInuser;
 
 class SideBar extends StatefulWidget {
   @override
@@ -18,7 +19,10 @@ class SideBar extends StatefulWidget {
 
 class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<SideBar> {
 
-  final _auth = FirebaseAuth.instance;
+  FirebaseRepository _repository = FirebaseRepository();
+  String email ='';
+  String profilePhotoUrl='';
+  String profileName='';
 
   AnimationController _animationController;
   StreamController<bool> isSidebarOpenedStreamController;
@@ -33,7 +37,7 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
     isSidebarOpenedStreamController = PublishSubject<bool>();
     isSidebarOpenedStream = isSidebarOpenedStreamController.stream;
     isSidebarOpenedSink = isSidebarOpenedStreamController.sink;
-    getCurrentUser();
+    getEmailAndProfilePhotoUrl();
   }
 
   @override
@@ -44,16 +48,10 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
     super.dispose();
   }
 
-  void getCurrentUser() async {
-    try{
-      final user = await _auth.currentUser();
-      if (user != null){
-        loggedInuser = user;
-      }
-    }
-    catch(e){
-      print(e);
-    }
+  Future<void> getEmailAndProfilePhotoUrl() async {
+    email = await _repository.getCurrentUser().then((value) => value.email);
+    profilePhotoUrl = await _repository.getProfilePhotoUrl();
+    profileName = await _repository.getProfileName();
   }
 
   void onIconPressed() {
@@ -72,6 +70,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    
+    
 
     return StreamBuilder<bool>(
       initialData: false,
@@ -88,7 +88,7 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(20),
-                  color: Color(0xff465F40),
+                  color: UniversalVariables.blackColor,
                   child: Column(
                     children: <Widget>[
                       SizedBox(
@@ -96,22 +96,19 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                       ),
                       ListTile(
                         title: Text(
-                          "Praveen",
-                          style: TextStyle(color: Color(0xFFE3E0D9), fontSize: 30, fontWeight: FontWeight.w800),
+                          profileName,
+                          style: TextStyle(color: Color(0xFFE3E0D9), fontSize: 25, fontWeight: FontWeight.w800),
                         ),
                         subtitle: Text(
-                          "praveenprabhu.777@gmail.com",
+                          email,
                           style: TextStyle(
                             color: Color(0xFFE3E0D9).withOpacity(0.8),
                             fontSize: 10,
                           ),
                         ),
                         leading: CircleAvatar(
-                          child: Icon(
-                            Icons.perm_identity,
-                            color: Colors.white,
-                          ),
-                          radius: 40,
+                          backgroundImage: NetworkImage(profilePhotoUrl),
+                          radius: 30,
                         ),
                       ),
                       Divider(
@@ -137,6 +134,22 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                           BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.HomePageClickedEvent);
                         },
                       ),
+                      MenuItem(
+                        icon: Icons.chat,
+                        title: "Chats",
+                        onTap: () {
+                          onIconPressed();
+                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.ChatsClickedEvent);
+                        },
+                      ),
+                      MenuItem(
+                        icon: Icons.call,
+                        title: "Call History",
+                        onTap: () {
+                          onIconPressed();
+                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.CallHistoryClickedEvent);
+                        },
+                      ),
                       Divider(
                         height: 64,
                         thickness: 0.5,
@@ -145,15 +158,21 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         endIndent: 32,
                       ),
                       MenuItem(
-                        icon: Icons.settings,
-                        title: "Settings",
+                        icon: Icons.update,
+                        title: "Events",
+                        onTap: () {
+                          onIconPressed();
+                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.EventsClickedEvent);
+                        },
                       ),
                       MenuItem(
                         icon: Icons.exit_to_app,
                         title: "Logout",
-                        onTap: (){
-                          _auth.signOut();
+                        onTap: () async {
+                          await _repository.signOut();
                           Navigator.of(context).pushReplacementNamed(LoginScreen.id);
+                          SharedPreferences loginData = await SharedPreferences.getInstance();
+                          loginData.setBool('login', true);
                         },
                       ),
                     ],
@@ -161,7 +180,7 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                 ),
               ),
               Align(
-                alignment: Alignment(0, -0.9),
+                alignment: Alignment(0, -1),
                 child: GestureDetector(
                   onTap: () {
                     onIconPressed();
@@ -171,7 +190,7 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                     child: Container(
                       width: 35,
                       height: 110,
-                      color: Color(0xff465F40),
+                      color: UniversalVariables.blackColor,
                       alignment: Alignment.centerLeft,
                       child: AnimatedIcon(
                         progress: _animationController.view,

@@ -1,7 +1,7 @@
 import 'package:employeetracking/components/rounded_button.dart';
-import 'package:employeetracking/screens/map_screen.dart';
+import 'package:employeetracking/resources/FirebaseRepository.dart';
 import 'package:employeetracking/sidebar/sidebar_layout.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:employeetracking/utils/Universalvariables.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -10,26 +10,25 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
-
   static const String id = 'login_screen';
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
-
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin{
-
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   String email;
   String pwd;
-  final _auth = FirebaseAuth.instance;
+  FirebaseRepository _repository = FirebaseRepository();
   bool spinner = false;
 
   Animation animation1;
   Animation animation2;
   AnimationController controller;
+
 
   @override
   void initState() {
@@ -38,27 +37,28 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       duration: Duration(seconds: 2),
       vsync: this,
     );
-    animation1 = ColorTween(begin: Color(0xff2b580c), end: Color(0xff2b580c).withOpacity(0.80)).animate(controller);
-    animation2 = ColorTween(begin: Color(0xff2b580c), end: Color(0xff2b580c).withOpacity(0.30)).animate(controller);
+    animation1 = ColorTween(
+            begin: UniversalVariables.blackColor, end: UniversalVariables.blackColor.withOpacity(0.85))
+        .animate(controller);
+    animation2 = ColorTween(
+            begin: UniversalVariables.separatorColor, end: UniversalVariables.separatorColor.withOpacity(0.30))
+        .animate(controller);
     controller.forward();
-    controller.addListener((){
-      setState(() {
-
-      });
+    controller.addListener(() {
+      setState(() {});
     });
-
   }
+
   @override
   void dispose() {
     super.dispose();
     controller.dispose();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       primary: true,
       key: scaffoldKey,
       body: ModalProgressHUD(
@@ -77,7 +77,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         width: double.infinity,
                         fit: BoxFit.fill,
                       ),
-
                     ]),
                     Container(
                       color: animation1.value,
@@ -112,17 +111,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       ),
                     ),
                     Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Log in to continue',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Log in to continue',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
                             fontWeight: FontWeight.w300,
                             fontSize: 20,
                             color: Colors.white,
-                      ),
-                    )
-                    )
+                          ),
+                        ))
                   ],
                 ),
               ),
@@ -132,30 +130,27 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 margin: EdgeInsets.all(20),
                 height: 450,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      offset: Offset(0,15),
-                      blurRadius: 15
-                    ),
-                    BoxShadow(
-                      color: Colors.black12,
-                      offset: Offset(0,-10),
-                      blurRadius: 10
-                    )
-                  ]
-                ),
+                    borderRadius: BorderRadius.circular(30),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black12,
+                          offset: Offset(0, 15),
+                          blurRadius: 15),
+                      BoxShadow(
+                          color: Colors.black12,
+                          offset: Offset(0, -10),
+                          blurRadius: 10)
+                    ]),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     Flexible(
-                      child : Container(
-                          height: 150.0,
-                          child: Image.asset('images/logo.png'),
-                        ),
+                      child: Container(
+                        height: 150.0,
+                        child: Image.asset('images/logo.png'),
+                      ),
                     ),
                     SizedBox(
                       height: 20,
@@ -172,20 +167,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     SizedBox(
                       height: 10,
                     ),
-                    Padding(
-                      padding: EdgeInsets.all(10),
-                      child: TextField(
-                        textInputAction: TextInputAction.next,
-                        onSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                        keyboardType: TextInputType.emailAddress,
-                        onChanged: (value) {
-                          email = value.trim();
-                        },
-                        decoration: kTextFieldDecoration.copyWith(
-                          hintText: 'Enter your email',
-                          prefixIcon: Icon(
-                            Icons.email
-                          )
+                    SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: TextField(
+                          textInputAction: TextInputAction.next,
+                          onSubmitted: (_) =>
+                              FocusScope.of(context).nextFocus(),
+                          keyboardType: TextInputType.emailAddress,
+                          onChanged: (value) {
+                            email = value.trim();
+                          },
+                          decoration: kTextFieldDecoration.copyWith(
+                              //errorText: ,
+                              hintText: 'Enter your email',
+                              prefixIcon: Icon(Icons.email)),
                         ),
                       ),
                     ),
@@ -199,11 +195,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           pwd = value;
                         },
                         decoration: kTextFieldDecoration.copyWith(
-                          hintText: 'Enter your password',
-                          prefixIcon: Icon(
-                            Icons.lock
-                          )
-                        ),
+                            hintText: 'Enter your password',
+                            prefixIcon: Icon(Icons.lock)),
                       ),
                     ),
                     RoundedButton(
@@ -211,25 +204,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       buttonColor: Color(0xff639a67),
                       onPressed: () async {
                         setState(() {
-                          spinner  = true;
+                          spinner = true;
                         });
                         try {
-                          final user = await _auth.signInWithEmailAndPassword(
-                              email: email, password: pwd);
-                          if (user != null) {
-                            Navigator.of(context).pushReplacementNamed(SideBarLayout.id);
+                          final resultUser = await _repository.signIn(email,pwd);
+                          if (resultUser != null) {
+                            Navigator.of(context)
+                                .pushReplacementNamed(SideBarLayout.id);
+                            _repository.addEmployeeDataToDB(resultUser);
                           }
                           setState(() {
                             spinner = false;
                           });
-                        }catch(e){
+                        } catch (e) {
                           setState(() {
-                            spinner  = false;
+                            spinner = false;
                           });
                           final snackBar = SnackBar(
-                            content: Text(
-                              'Invalid Email or Password'
-                            ),
+                            content: Text('Invalid Email or Password'),
                           );
                           scaffoldKey.currentState.showSnackBar(snackBar);
                         }
