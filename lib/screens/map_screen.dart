@@ -114,7 +114,7 @@ class _MapScreenState extends State<MapScreen> {
     final Marker _marker = Marker(
       icon: employeeLocation,
       markerId: _markerid,
-      infoWindow: InfoWindow(title: marker['email'], onTap: () {}),
+      infoWindow: InfoWindow(title: marker['name'], onTap: () {}),
       position:
           LatLng(double.parse(marker['lat']), double.parse(marker['lng'])),
     );

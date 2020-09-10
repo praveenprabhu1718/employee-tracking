@@ -91,21 +91,21 @@ class _ChatListContainerState extends State<ChatListContainer> {
   Widget build(BuildContext context) {
     return Container(
       child: ListView.builder(
-        itemCount: 2,
+        itemCount: 1,
         padding: EdgeInsets.all(10),
         itemBuilder: (context,itemCount){
           return CustomTile(
             onTap: null,
             mini: false,
             title: Text(
-              'Praveen Prabhu',
+              'Dhanush',
               style: GoogleFonts.roboto(
                 color: Colors.white,
                 fontSize: 19
               ),
             ),
             subtitle: Text(
-              'Hello',
+              'how yu doing?',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14
