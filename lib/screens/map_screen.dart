@@ -1,9 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:employeetracking/enum/UserState.dart';
+import 'package:employeetracking/models/Employee.dart';
+import 'package:employeetracking/provider/UserProvider.dart';
 import 'package:employeetracking/resources/FirebaseRepository.dart';
+import 'package:employeetracking/screens/ChatScreen.dart';
 import 'package:employeetracking/utils/Universalvariables.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:location/location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:employeetracking/constants.dart';
@@ -12,6 +17,7 @@ import 'package:employeetracking/navigation_bloc/navigation_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget with NavigationStates {
   static const String id = 'map_screen';
@@ -20,7 +26,7 @@ class MapScreen extends StatefulWidget with NavigationStates {
   _MapScreenState createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends State<MapScreen> with WidgetsBindingObserver {
   StreamSubscription _localSubscription;
   Location _loccationTracker = Location();
   Marker marker;
@@ -28,6 +34,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Set<Marker> places;
   var employees = [];
+  List<String> employeeEmails = [];
 
   final LatLng _center = const LatLng(12.921327, 80.240306);
 
@@ -45,14 +52,15 @@ class _MapScreenState extends State<MapScreen> {
 
   FirebaseRepository _repository = FirebaseRepository();
 
+  UserProvider userProvider;
+
   Future<void> getCurrentLocation() async {
     location = await _loccationTracker.getLocation();
     print(location.latitude);
     updateLocationToFirestore(location);
   }
 
-  void updateLocationToFirestore  (LocationData currentLocation) async {
-
+  void updateLocationToFirestore(LocationData currentLocation) async {
     var employee = await _repository.getCurrentUser();
     _repository.updateLocation(currentLocation, employee);
   }
@@ -77,6 +85,17 @@ class _MapScreenState extends State<MapScreen> {
     movingLocation.onLocationChanged.listen((event) {
       updateLocationToFirestore(event);
     });
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.refreshUser();
+
+      _repository.setUserState(
+        userId: userProvider.getEmployee.email,
+        userState: UserState.Online,
+      );
+    });
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -84,12 +103,51 @@ class _MapScreenState extends State<MapScreen> {
     if (_localSubscription != null) {
       _localSubscription.cancel();
     }
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    String currentUserId =
+        (userProvider != null && userProvider.getEmployee != null)
+            ? userProvider.getEmployee.email
+            : "";
+
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        currentUserId != null
+            ? _repository.setUserState(
+                userId: currentUserId, userState: UserState.Online)
+            : print("resume state");
+        break;
+      case AppLifecycleState.inactive:
+        currentUserId != null
+            ? _repository.setUserState(
+                userId: currentUserId, userState: UserState.Offline)
+            : print("inactive state");
+        break;
+      case AppLifecycleState.paused:
+        currentUserId != null
+            ? _repository.setUserState(
+                userId: currentUserId, userState: UserState.Waiting)
+            : print("paused state");
+        break;
+      case AppLifecycleState.detached:
+        currentUserId != null
+            ? _repository.setUserState(
+                userId: currentUserId, userState: UserState.Offline)
+            : print("detached state");
+        break;
+    }
   }
 
   populateEmployees() async {
     employees = [];
-    employees = await _repository.populateEmployees();    
+    employees = await _repository.populateEmployees();
   }
 
   populateEmployeesMarkers() {
@@ -100,7 +158,9 @@ class _MapScreenState extends State<MapScreen> {
       if (docs.documents.isNotEmpty) {
         for (var i = 0; i < docs.documents.length; i++) {
           final FirebaseUser user = await _auth.currentUser();
-          if (docs.documents[i].data['email'] != user.email) {
+          if (docs.documents[i].data['email'] !=
+              userProvider.getEmployee.email) {
+            employeeEmails.add(docs.documents[i].data['email']);
             initMarkerForEmployees(
                 docs.documents[i].data, docs.documents[i].documentID);
           }
@@ -124,7 +184,10 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   populatemarkers() {
-    Firestore.instance.collection(MARKERS_COLLECTION).getDocuments().then((docs) {
+    Firestore.instance
+        .collection(MARKERS_COLLECTION)
+        .getDocuments()
+        .then((docs) {
       if (docs.documents.isNotEmpty) {
         for (var i = 0; i < docs.documents.length; i++) {
           initMarker(docs.documents[i].data, docs.documents[i].documentID);
@@ -147,6 +210,7 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget placesCard(employee) {
+    Employee employeeObj = Employee.frommap(employee);
     return Padding(
       padding: EdgeInsets.only(left: 2, top: 10, right: 10),
       child: InkWell(
@@ -155,7 +219,8 @@ class _MapScreenState extends State<MapScreen> {
         },
         child: Container(
           decoration: BoxDecoration(
-              color: UniversalVariables.blackColor, borderRadius: BorderRadius.circular(15)),
+              color: UniversalVariables.blackColor,
+              borderRadius: BorderRadius.circular(15)),
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width - 100,
           child: Column(
@@ -169,19 +234,29 @@ class _MapScreenState extends State<MapScreen> {
               ),
               Expanded(
                 child: Center(
-                  child: Text(employee['name'],style: TextStyle(color:Colors.white),),
+                  child: Text(
+                    employee['name'],
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
                 flex: 1,
               ),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: EdgeInsets.only(right: 10, left: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       IconButton(
-                          icon: Icon(Icons.chat, color: UniversalVariables.greyColor),
-                          onPressed: null),
+                          icon: Icon(Icons.chat,
+                              color: UniversalVariables.greyColor),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ChatScreen(receiver: employeeObj)));
+                          }),
                       IconButton(
                           icon: Icon(
                             Icons.call,

@@ -121,11 +121,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 )
               : Container(),
           chatControls(),
-          // showEmojiPicker
-          //     ? Container(
-          //         child: emojiContainer(),
-          //       )
-          //     : Container()
+          showEmojiPicker
+              ? Container(
+                  child: emojiContainer(),
+                )
+              : Container()
         ],
       ),
     );
@@ -226,7 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
             style: TextStyle(fontSize: 16, color: Colors.white),
           )
         : message.photourl != null
-            ? CachedImage(url: message.photourl)
+            ? CachedImage(message.photourl)
             : Text('URL is null');
   }
 
@@ -395,22 +395,22 @@ class _ChatScreenState extends State<ChatScreen> {
                     fillColor: UniversalVariables.separatorColor,
                   ),
                 ),
-                // IconButton(
-                //   splashColor: Colors.transparent,
-                //   highlightColor: Colors.transparent,
-                //   onPressed: () {
-                //     if (!showEmojiPicker) {
-                //       // keyboard is visible
-                //       hideKeyboard();
-                //       showEmojiContainer();
-                //     } else {
-                //       //keyboard is hidden
-                //       showKeyboard();
-                //       hideEmojiContainer();
-                //     }
-                //   },
-                //   icon: Icon(Icons.face,color: UniversalVariables.greyColor,),
-                // ),
+                IconButton(
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  onPressed: () {
+                    if (!showEmojiPicker) {
+                      // keyboard is visible
+                      hideKeyboard();
+                      showEmojiContainer();
+                    } else {
+                      //keyboard is hidden
+                      showKeyboard();
+                      hideEmojiContainer();
+                    }
+                  },
+                  icon: Icon(Icons.face,color: UniversalVariables.greyColor,),
+                ),
               ],
             ),
           ),

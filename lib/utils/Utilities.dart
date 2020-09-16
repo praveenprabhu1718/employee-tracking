@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:employeetracking/enum/UserState.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,6 +23,32 @@ class Utils{
     IM.copyResize(image,width: 500, height: 500);
     return new File('$path/img_$random')..writeAsBytesSync(IM.encodeJpg(image,quality: 85));
 
+  }
+
+  static int stateToNum(UserState userState) {
+    switch (userState) {
+      case UserState.Offline:
+        return 0;
+
+      case UserState.Online:
+        return 1;
+
+      default:
+        return 2;
+    }
+  }
+
+  static UserState numToState(int number) {
+     switch (number) {
+      case 0:
+        return UserState.Offline;
+
+      case 1:
+        return UserState.Online;
+
+      default:
+        return UserState.Waiting;
+    }
   }
   
 }

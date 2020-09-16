@@ -12,6 +12,7 @@ const String PROFILEPHOTO = 'profilePhoto';
 const String NAME = 'name'; 
 const String EVENTS_COLLECTION = 'Events';
 const String MARKERS_COLLECTION = 'Markers';
+const String CONTACTS_COLLECTION = 'Contacts';
 const String MESSAGE_TYPE_IMAGE = 'image';
 
 const kTextFieldDecoration = InputDecoration(

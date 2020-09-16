@@ -2,11 +2,15 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:employeetracking/constants.dart';
+import 'package:employeetracking/enum/UserState.dart';
+import 'package:employeetracking/models/Contact.dart';
 import 'package:employeetracking/models/Employee.dart';
 import 'package:employeetracking/models/Message.dart';
 import 'package:employeetracking/provider/ImageUploadProvider.dart';
+import 'package:employeetracking/utils/Utilities.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:location/location.dart';
 
 class FirebaseMethods {
@@ -32,6 +36,27 @@ class FirebaseMethods {
         .collection(EMPLOYEES_COLLECTION)
         .document(currentUser.email)
         .setData(employee.toMap(employee));
+  }
+
+  Future<Employee> getEmployeeDetails() async {
+    FirebaseUser currentUser = await getCurrentUser();
+
+    DocumentSnapshot documentSnapshot = await firestore
+        .collection(EMPLOYEES_COLLECTION)
+        .document(currentUser.email)
+        .get();
+    return Employee.frommap(documentSnapshot.data);
+  }
+
+  Future<Employee> getEmployeDetailsById(id) async {
+    try{
+      DocumentSnapshot documentSnapshot = await firestore.collection(EMPLOYEES_COLLECTION).document(id).get();
+    return Employee.frommap(documentSnapshot.data);
+    }
+    catch(e){
+      print(e);
+      return null;
+    }
   }
 
   Future<void> updateLocation(
@@ -76,6 +101,7 @@ class FirebaseMethods {
     return employeeList;
   }
 
+
   Future<String> getProfilePhotoUrl() async {
     FirebaseUser user = await getCurrentUser();
     return await firestore
@@ -85,6 +111,21 @@ class FirebaseMethods {
         .then((DocumentSnapshot snapshot) {
       return snapshot.data[PROFILEPHOTO];
     });
+  }
+
+  void updateNameAndProfilePhotoUrl(String name, String profilePhotoUrl) async {
+    FirebaseUser user = await getCurrentUser();
+    await firestore.collection(EMPLOYEES_COLLECTION)
+      .document(user.email)
+      .updateData({
+        'name' : name,
+        'profilePhoto' : profilePhotoUrl
+      });
+  }
+
+  void changePassword(String password) async {
+    FirebaseUser user = await getCurrentUser();
+    user.updatePassword(password);
   }
 
   Future<String> getProfileName() async {
@@ -101,12 +142,14 @@ class FirebaseMethods {
   Future<void> addMsgToDB(
       Message message, Employee sender, Employee receiver) async {
     var map = message.toMap();
-
+    
     await firestore
         .collection(MESSAGES_COLLECTION)
         .document(message.senderId)
         .collection(message.receiverId)
         .add(map);
+
+    addToContacts(senderId: message.senderId, receiverId: message.receiverId);
 
     return await firestore
         .collection(MESSAGES_COLLECTION)
@@ -115,28 +158,74 @@ class FirebaseMethods {
         .add(map);
   }
 
+  DocumentReference getContactReference({String of, String forContact}) {
+    return  firestore
+        .collection(EMPLOYEES_COLLECTION)
+        .document(of)
+        .collection(CONTACTS_COLLECTION)
+        .document(forContact);
+  }
+
+  addToContacts({String senderId, String receiverId}) async {
+    Timestamp currentTime = Timestamp.now();
+
+    await addToSenderContacts(senderId, receiverId, currentTime);
+    await addToReceiverContacts(senderId, receiverId, currentTime);
+  }
+
+  Future<void> addToSenderContacts(
+      String senderId, String receiverId, currentTime) async {
+    DocumentSnapshot documentSnapshot =
+        await getContactReference(of: senderId, forContact: receiverId).get();
+
+    if (!documentSnapshot.exists) {
+      Contact receiverContact = Contact(email: receiverId, addedOn: currentTime);
+      var receiverMap = receiverContact.toMap(receiverContact);
+
+      await getContactReference(of: senderId, forContact: receiverId)
+          .setData(receiverMap);
+    }
+  }
+
+  Future<void> addToReceiverContacts(
+      String senderId, String receiverId, currentTime) async {
+    DocumentSnapshot documentSnapshot =
+        await getContactReference(of: receiverId, forContact: senderId).get();
+
+    if (!documentSnapshot.exists) {
+      Contact senderContact = Contact(email: senderId, addedOn: currentTime);
+      var senderMap = senderContact.toMap(senderContact);
+
+      await getContactReference(of: receiverId, forContact: senderId)
+          .setData(senderMap);
+    }
+  }
+
   Future<String> uploadImageToStorage(File image) async {
-   try{
-      _storageReference = FirebaseStorage.instance.ref().child('ChatImages').child('${DateTime.now().millisecondsSinceEpoch}');
-    StorageUploadTask _storageUploadTask = _storageReference.putFile(image);
-    String url = await (await _storageUploadTask.onComplete).ref.getDownloadURL();
-    return url;
-   }catch(e){
-     print(e);
-     return null;
-   }
+    try {
+      _storageReference = FirebaseStorage.instance
+          .ref()
+          .child('ChatImages')
+          .child('${DateTime.now().millisecondsSinceEpoch}');
+      StorageUploadTask _storageUploadTask = _storageReference.putFile(image);
+      String url =
+          await (await _storageUploadTask.onComplete).ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      print(e);
+      return null;
+    }
   }
 
   void setImageMsg(String url, String receiverId, String senderId) async {
     Message _message;
     _message = Message.imageMessage(
-      message: 'IMAGE',
-      senderId: senderId,
-      receiverId: receiverId,
-      timestamp: Timestamp.now(),
-      type: 'image',
-      photourl: url 
-    );
+        message: 'IMAGE',
+        senderId: senderId,
+        receiverId: receiverId,
+        timestamp: Timestamp.now(),
+        type: 'image',
+        photourl: url);
     var map = _message.toImageMap();
 
     await firestore
@@ -152,12 +241,37 @@ class FirebaseMethods {
         .add(map);
   }
 
-  void uploadImage(File image, String receiverId, String senderId, ImageUploadProvider imageUploadprovider) async {
-
+  void uploadImage(File image, String receiverId, String senderId,
+      ImageUploadProvider imageUploadprovider) async {
     imageUploadprovider.setToLoading();
     String url = await uploadImageToStorage(image);
-    setImageMsg(url,receiverId,senderId);
+    setImageMsg(url, receiverId, senderId);
     imageUploadprovider.setToIdle();
-
   }
+
+  Stream<QuerySnapshot> fetchContacts({String userId}) => firestore
+      .collection(EMPLOYEES_COLLECTION)
+      .document(userId)
+      .collection(CONTACTS_COLLECTION)
+      .snapshots();
+
+  Stream<QuerySnapshot> fetchLastMessageBetween(
+          {@required String senderId, @required String receiverId}) =>
+      firestore
+          .collection(MESSAGES_COLLECTION)
+          .document(senderId)
+          .collection(receiverId)
+          .orderBy('timestamp')
+          .snapshots();
+
+  void setUserState({@required String userId, @required UserState userState}) {
+    int stateNum = Utils.stateToNum(userState);
+
+    firestore.collection(EMPLOYEES_COLLECTION).document(userId).updateData({
+      "state": stateNum,
+    });
+  }
+
+  Stream<DocumentSnapshot> getUserStream({@required String uid}) =>
+      firestore.collection(EMPLOYEES_COLLECTION).document(uid).snapshots();
 }

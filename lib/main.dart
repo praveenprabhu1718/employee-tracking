@@ -1,5 +1,6 @@
 import 'package:employeetracking/constants.dart';
 import 'package:employeetracking/provider/ImageUploadProvider.dart';
+import 'package:employeetracking/provider/UserProvider.dart';
 import 'package:employeetracking/resources/FirebaseRepository.dart';
 import 'package:employeetracking/screens/SearchScreen.dart';
 import 'package:employeetracking/screens/login_screen.dart';
@@ -21,9 +22,11 @@ FirebaseRepository _repository = FirebaseRepository();
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => ImageUploadProvider(),
-      child: MaterialApp(
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ImageUploadProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],child: MaterialApp(
         theme: ThemeData(
           brightness: Brightness.light,
           primaryColor: UniversalVariables.blackColor,
@@ -34,7 +37,7 @@ class MyApp extends StatelessWidget {
           SearchScreen.id: (context) => SearchScreen(),
           SideBarLayout.id: (context) => SideBarLayout(),
           LoginScreen.id: (context) => LoginScreen(),
-          MapScreen.id: (context) => MapScreen()
+          MapScreen.id: (context) => MapScreen(),
         },
         home: FutureBuilder(
             future: _repository.getCurrentUser(),

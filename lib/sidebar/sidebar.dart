@@ -92,12 +92,12 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                   child: Column(
                     children: <Widget>[
                       SizedBox(
-                        height: 100,
+                        height: 75,
                       ),
                       ListTile(
                         title: Text(
                           profileName,
-                          style: TextStyle(color: Color(0xFFE3E0D9), fontSize: 25, fontWeight: FontWeight.w800),
+                          style: TextStyle(color: Color(0xFFE3E0D9), fontSize: 20, fontWeight: FontWeight.w800),
                         ),
                         subtitle: Text(
                           email,

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:employeetracking/enum/UserState.dart';
 import 'package:employeetracking/models/Employee.dart';
 import 'package:employeetracking/models/Message.dart';
 import 'package:employeetracking/provider/ImageUploadProvider.dart';
@@ -36,14 +38,36 @@ class FirebaseRepository {
 
   Future<String> getProfileName() async => _firebaseMethods.getProfileName();
 
+  void updateNameAndProfilePhotoUrl(String name, String profilePhotoUrl) async => _firebaseMethods.updateNameAndProfilePhotoUrl(name, profilePhotoUrl);
+
+  void changePassword(String password) async => _firebaseMethods.changePassword(password);
+
   Future<void> addMsgToDB(
           Message message, Employee sender, Employee receiver) async =>
       _firebaseMethods.addMsgToDB(message, sender, receiver);
+
+  Future<Employee> getEmployeeDetails() async =>
+      _firebaseMethods.getEmployeeDetails();
+
+  Future<Employee> getEmployeeDetailsById(id) async => _firebaseMethods.getEmployeDetailsById(id);
+
+  Stream<QuerySnapshot> fetchContacts({String userId}) =>
+      _firebaseMethods.fetchContacts(userId: userId);
+
+  Stream<QuerySnapshot> fetchLastMessageBetween(
+          {@required String senderId, @required String receiverId}) =>
+      _firebaseMethods.fetchLastMessageBetween(
+          senderId: senderId, receiverId: receiverId);
 
   void uploadImage(
           {@required File image,
           @required String senderId,
           @required String receiverId,
           @required ImageUploadProvider imageUploadProvider}) =>
-      _firebaseMethods.uploadImage(image, receiverId, senderId, imageUploadProvider);
+      _firebaseMethods.uploadImage(
+          image, receiverId, senderId, imageUploadProvider);
+
+  void setUserState({@required String userId, @required UserState userState}) => _firebaseMethods.setUserState(userId: userId, userState: userState);
+
+  Stream<DocumentSnapshot> getUserStream({@required String uid}) => _firebaseMethods.getUserStream(uid: uid); 
 }
