@@ -11,18 +11,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../sidebar/menu_item.dart';
 
-
 class SideBar extends StatefulWidget {
   @override
   _SideBarState createState() => _SideBarState();
 }
 
-class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<SideBar> {
-
+class _SideBarState extends State<SideBar>
+    with SingleTickerProviderStateMixin<SideBar> {
   FirebaseRepository _repository = FirebaseRepository();
-  String email ='';
-  String profilePhotoUrl='';
-  String profileName='';
+  String email = '';
+  String profilePhotoUrl = '';
+  String profileName = '';
 
   AnimationController _animationController;
   StreamController<bool> isSidebarOpenedStreamController;
@@ -33,7 +32,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: _animationDuration);
+    _animationController =
+        AnimationController(vsync: this, duration: _animationDuration);
     isSidebarOpenedStreamController = PublishSubject<bool>();
     isSidebarOpenedStream = isSidebarOpenedStreamController.stream;
     isSidebarOpenedSink = isSidebarOpenedStreamController.sink;
@@ -70,8 +70,6 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
-    
 
     return StreamBuilder<bool>(
       initialData: false,
@@ -94,23 +92,30 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                       SizedBox(
                         height: 75,
                       ),
-                      ListTile(
-                        title: Text(
-                          profileName,
-                          style: TextStyle(color: Color(0xFFE3E0D9), fontSize: 20, fontWeight: FontWeight.w800),
-                        ),
-                        subtitle: Text(
-                          email,
-                          style: TextStyle(
-                            color: Color(0xFFE3E0D9).withOpacity(0.8),
-                            fontSize: 10,
-                          ),
-                        ),
-                        leading: CircleAvatar(
-                          backgroundImage: NetworkImage(profilePhotoUrl),
-                          radius: 30,
-                        ),
-                      ),
+                      StreamBuilder(
+                          stream: FirebaseRepository().avatarStream(email),
+                          builder: (context, snapshot) {
+                            return ListTile(
+                              title: Text(
+                                profileName,
+                                style: TextStyle(
+                                    color: Color(0xFFE3E0D9),
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800),
+                              ),
+                              subtitle: Text(
+                                email,
+                                style: TextStyle(
+                                  color: Color(0xFFE3E0D9).withOpacity(0.8),
+                                  fontSize: 10,
+                                ),
+                              ),
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(snapshot.data['profilePhoto']),
+                                radius: 30,
+                              ),
+                            );
+                          }),
                       Divider(
                         height: 64,
                         thickness: 0.5,
@@ -123,7 +128,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         title: "My Account",
                         onTap: () {
                           onIconPressed();
-                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.MyAccountClickedEvent);
+                          BlocProvider.of<NavigationBloc>(context)
+                              .add(NavigationEvents.MyAccountClickedEvent);
                         },
                       ),
                       MenuItem(
@@ -131,7 +137,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         title: "Map",
                         onTap: () {
                           onIconPressed();
-                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.HomePageClickedEvent);
+                          BlocProvider.of<NavigationBloc>(context)
+                              .add(NavigationEvents.HomePageClickedEvent);
                         },
                       ),
                       MenuItem(
@@ -139,7 +146,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         title: "Chats",
                         onTap: () {
                           onIconPressed();
-                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.ChatsClickedEvent);
+                          BlocProvider.of<NavigationBloc>(context)
+                              .add(NavigationEvents.ChatsClickedEvent);
                         },
                       ),
                       MenuItem(
@@ -147,7 +155,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         title: "Call History",
                         onTap: () {
                           onIconPressed();
-                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.CallHistoryClickedEvent);
+                          BlocProvider.of<NavigationBloc>(context)
+                              .add(NavigationEvents.CallHistoryClickedEvent);
                         },
                       ),
                       Divider(
@@ -162,7 +171,8 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         title: "Events",
                         onTap: () {
                           onIconPressed();
-                          BlocProvider.of<NavigationBloc>(context).add(NavigationEvents.EventsClickedEvent);
+                          BlocProvider.of<NavigationBloc>(context)
+                              .add(NavigationEvents.EventsClickedEvent);
                         },
                       ),
                       MenuItem(
@@ -170,8 +180,10 @@ class _SideBarState extends State<SideBar> with SingleTickerProviderStateMixin<S
                         title: "Logout",
                         onTap: () async {
                           await _repository.signOut();
-                          Navigator.of(context).pushReplacementNamed(LoginScreen.id);
-                          SharedPreferences loginData = await SharedPreferences.getInstance();
+                          Navigator.of(context)
+                              .pushReplacementNamed(LoginScreen.id);
+                          SharedPreferences loginData =
+                              await SharedPreferences.getInstance();
                           loginData.setBool('login', true);
                         },
                       ),

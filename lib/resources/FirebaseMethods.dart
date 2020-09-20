@@ -217,6 +217,38 @@ class FirebaseMethods {
     }
   }
 
+  void updateProfilePhotoUrl(String url) async {
+    FirebaseUser user = await getCurrentUser();
+    firestore.collection(EMPLOYEES_COLLECTION)
+      .document(user.email)
+      .updateData({
+        'profilePhoto' : url
+      });
+  }
+
+  Stream avatarStream(String email) {
+    return firestore.collection(EMPLOYEES_COLLECTION)
+      .document(email)
+      .snapshots();
+  }
+
+  Future<void> updateProfilePhoto(File image) async {
+    var user = await getCurrentUser();
+    try {
+      _storageReference = FirebaseStorage.instance
+          .ref()
+          .child('ProfilePhotos')
+          .child('${user.email}');
+      StorageUploadTask _storageUploadTask = _storageReference.putFile(image);
+      String url =
+          await (await _storageUploadTask.onComplete).ref.getDownloadURL();
+      updateProfilePhotoUrl(url);
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
   void setImageMsg(String url, String receiverId, String senderId) async {
     Message _message;
     _message = Message.imageMessage(

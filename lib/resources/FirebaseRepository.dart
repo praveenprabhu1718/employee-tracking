@@ -59,6 +59,10 @@ class FirebaseRepository {
       _firebaseMethods.fetchLastMessageBetween(
           senderId: senderId, receiverId: receiverId);
 
+  Stream avatarStream(String email) => _firebaseMethods.avatarStream(email);
+
+  Future<void> updateProfilePhoto(File profilePhoto) async => _firebaseMethods.updateProfilePhoto(profilePhoto);
+
   void uploadImage(
           {@required File image,
           @required String senderId,
