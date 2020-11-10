@@ -1,16 +1,13 @@
-# employeetracking
 
-A new Flutter application.
+Employee Tracking is a Cross Platform App developed for college project using Flutter. The objective of the app is to track the real-time location of employees inside the campus and enable the employees to chat between them. I've referred some github repos for developing this project. Below are the screenshots of the app
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<img src="screenshots/login.jpg" width="200" > <img src="screenshots/home.jpg" width="200" hspace="50"> <img src="screenshots/navbar.jpg" width="200" >
+<br>
+<br>
+<img src="screenshots/events.jpg" width="200" > <img src="screenshots/search.jpg" width="200" hspace="50"> <img src="screenshots/pc.jpg" width="200" >
+<br>
+<br>
+<img src="screenshots/list.jpg" width="200" >
